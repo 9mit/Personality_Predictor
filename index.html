@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Personality Predictor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+      :root {
+        --primary: #7303c0;
+        --secondary: #6247aa;
+        --accent: #ec38bc;
+        --light: #f8f9fa;
+        --dark: #121212;
+        --darker: #090909;
+        --space-blue: #1a2b45;
+        --space-purple: #2e1a45;
+        --text: #edf2f7;
+        --text-secondary: #a0aec0;
+        --success: #38ffdd;
+        --warning: #fdcff3;
+        --info: #38aaff;
+        --star: #fffaa0;
+        --transition: all 0.3s ease;
+      }
+      
+      @keyframes twinkle {
+        0% { opacity: 0.3; }
+        50% { opacity: 1; }
+        100% { opacity: 0.3; }
+      }
+      
+      @keyframes planetRotate {
+        0% { transform: translateX(-100%) rotate(0deg); }
+        100% { transform: translateX(100vw) rotate(360deg); }
+      }
+      
+      @keyframes orbitAround {
+        0% { transform: rotate(0deg) translateX(120px) rotate(0deg); }
+        100% { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+      }
+      
+      body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, var(--space-blue) 0%, var(--space-purple) 50%, var(--darker) 100%);
+        color: var(--text);
+        overflow-x: hidden;
+      }
+      
+      .star {
+        position: absolute;
+        background-color: var(--star);
+        border-radius: 50%;
+        opacity: 0.7;
+        z-index: 0;
+      }
+      
+      .planet {
+        position: absolute;
+        border-radius: 50%;
+        z-index: 1;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      }
+      
+      .moon {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background-color: #d1d1d1;
+        border-radius: 50%;
+        animation: orbitAround 20s linear infinite;
+      }
+      
+      #saturn {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(45deg, #d4a46f, #e7c687);
+        top: 15%;
+        left: -100px;
+        animation: planetRotate 120s linear infinite;
+      }
+      
+      #saturn::before {
+        content: '';
+        position: absolute;
+        width: 100px;
+        height: 20px;
+        background-color: rgba(231, 198, 135, 0.5);
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(30deg);
+      }
+      
+      #jupiter {
+        width: 90px;
+        height: 90px;
+        background: radial-gradient(circle at 30% 30%, #f0c987, #bf8040);
+        bottom: 10%;
+        right: -100px;
+        animation: planetRotate 180s linear infinite reverse;
+      }
+      
+      #mars {
+        width: 40px;
+        height: 40px;
+        background: radial-gradient(circle at 30% 30%, #e27b58, #9c2e0e);
+        top: 65%;
+        left: -50px;
+        animation: planetRotate 60s linear infinite;
+      }
+      
+      .container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 5;
+      }
+      
+      .app-container {
+        background-color: rgba(18, 18, 18, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 
+                    0 0 10px rgba(114, 9, 183, 0.5),
+                    0 0 20px rgba(114, 9, 183, 0.3);
+        width: 90%;
+        max-width: 600px;
+        padding: 30px;
+        transition: var(--transition);
+        border: 1px solid rgba(114, 9, 183, 0.2);
+      }
+      
+      .app-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      
+      .app-title {
+        font-size: 2.2rem;
+        background: linear-gradient(to right, var(--success), var(--accent));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      
+      .app-subtitle {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        opacity: 0.9;
+      }
+      
+      .progress-bar-container {
+        width: 100%;
+        height: 10px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 5px;
+        margin: 20px 0;
+        overflow: hidden;
+      }
+      
+      .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(to right, var(--info), var(--accent));
+        border-radius: 5px;
+        transition: width 0.5s ease;
+        box-shadow: 0 0 10px rgba(114, 9, 183, 0.5);
+      }
+      
+      .question-container {
+        display: none;
+      }
+      
+      .question-title {
+        font-size: 1.3rem;
+        margin-bottom: 20px;
+        font-weight: 600;
+        color: var(--light);
+      }
+      
+      .options-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .option {
+        padding: 15px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+      
+      .option:hover {
+        border-color: var(--primary);
+        background-color: rgba(114, 3, 192, 0.2);
+        transform: translateY(-2px);
+      }
+      
+      .option.selected {
+        border-color: var(--primary);
+        background-color: rgba(114, 3, 192, 0.3);
+        box-shadow: 0 0 10px rgba(114, 3, 192, 0.5);
+      }
+      
+      .option-radio {
+        margin-right: 10px;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        display: inline-block;
+        position: relative;
+      }
+      
+      .option.selected .option-radio::after {
+        content: '';
+        width: 10px;
+        height: 10px;
+        background-color: var(--accent);
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 5px var(--accent);
+      }
+      
+      .navigation {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+      }
+      
+      .btn {
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 1rem;
+        letter-spacing: 1px;
+      }
+      
+      .btn-primary {
+        background: linear-gradient(45deg, var(--primary), var(--accent));
+        color: white;
+        box-shadow: 0 4px 15px rgba(114, 3, 192, 0.3);
+      }
+      
+      .btn-primary:hover {
+        background: linear-gradient(45deg, var(--accent), var(--primary));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(114, 3, 192, 0.5);
+      }
+      
+      .btn-secondary {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: var(--text);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      }
+      
+      .btn-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+      }
+      
+      .btn-disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+      
+      .results-container {
+        display: none;
+        text-align: center;
+      }
+      
+      .profile-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+        color: var(--accent);
+        animation: pulse 2s infinite alternate;
+      }
+      
+      @keyframes pulse {
+        0% { transform: scale(1); opacity: 0.9; }
+        100% { transform: scale(1.1); opacity: 1; }
+      }
+      
+      .profile-title {
+        font-size: 2rem;
+        background: linear-gradient(to right, var(--success), var(--accent));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      
+      .profile-description {
+        margin-bottom: 20px;
+        line-height: 1.6;
+        color: var(--text);
+        font-size: 1.05rem;
+      }
+      
+      .profile-traits {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin: 20px 0;
+      }
+      
+      .trait {
+        background: linear-gradient(45deg, rgba(114, 3, 192, 0.3), rgba(236, 56, 188, 0.3));
+        color: var(--light);
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        border: 1px solid rgba(236, 56, 188, 0.3);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+      }
+      
+      .share-container {
+        margin-top: 30px;
+      }
+      
+      .share-title {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        color: var(--text-secondary);
+      }
+      
+      .social-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+      }
+      
+      .social-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 1.2rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+      
+      .twitter-btn {
+        background: linear-gradient(45deg, #1da1f2, #0d8ecf);
+      }
+      
+      .facebook-btn {
+        background: linear-gradient(45deg, #3b5998, #2d4373);
+      }
+      
+      .whatsapp-btn {
+        background: linear-gradient(45deg, #25d366, #20b35a);
+      }
+      
+      .social-btn:hover {
+        transform: translateY(-5px) rotate(5deg);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      }
+      
+      .restart-btn {
+        margin-top: 20px;
+      }
+      
+      .intro-container {
+        text-align: center;
+      }
+      
+      .intro-image {
+        max-width: 120px;
+        margin-bottom: 20px;
+        filter: drop-shadow(0 0 10px rgba(56, 170, 255, 0.7));
+        animation: float 3s ease-in-out infinite;
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+      }
+      
+      .intro-text {
+        margin-bottom: 30px;
+        line-height: 1.6;
+        color: var(--text);
+        padding: 0 15px;
+      }
+      
+      @media (max-width: 600px) {
+        .app-container {
+          width: 95%;
+          padding: 20px;
+        }
+        
+        .app-title {
+          font-size: 1.8rem;
+        }
+        
+        .btn {
+          padding: 10px 20px;
+        }
+        
+        .star {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Solar System Background Elements -->
+    <div id="saturn" class="planet"></div>
+    <div id="jupiter" class="planet"></div>
+    <div id="mars" class="planet"></div>
+    <!-- Stars will be added dynamically -->
+    
+    <div class="container">
+      <div class="app-container">
+        <div class="app-header">
+          <div class="app-title">Personality Predictor</div>
+          <div class="app-subtitle">Discover your unique personality profile</div>
+        </div>
+        
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="intro-container" id="intro-container">
+          <img src="https://public.youware.com/users-website-assets/prod/706415bc-5b55-4c2a-b137-56114bc7be53/aebc831ae66e43e983735bb1b1b54994.jpg" alt="Cosmic Explorer - Journey Through Space" class="intro-image">
+          <p class="intro-text">
+            Journey through the cosmos to discover your unique personality profile. Answer a series of questions and we'll reveal celestial insights about your character traits, strengths, and potential areas for growth.
+          </p>
+          <button class="btn btn-primary" id="start-btn">Begin Cosmic Journey</button>
+        </div>
+        
+        <div id="question-container" class="question-container">
+          <div class="question-title" id="question-text">Question text goes here</div>
+          <div class="options-container" id="options-container">
+            <!-- Options will be added here dynamically -->
+          </div>
+          <div class="navigation">
+            <button class="btn btn-secondary" id="prev-btn">Previous</button>
+            <button class="btn btn-primary btn-disabled" id="next-btn">Next</button>
+          </div>
+        </div>
+        
+        <div id="results-container" class="results-container">
+          <div class="profile-icon" id="profile-icon">
+            <i class="fas fa-user-astronaut"></i>
+          </div>
+          <div class="profile-title" id="profile-title">Your Cosmic Identity</div>
+          <p class="profile-description" id="profile-description">
+            Your cosmic personality description will appear here.
+          </p>
+          <div class="profile-traits" id="profile-traits">
+            <!-- Traits will be added here dynamically -->
+          </div>
+          <div class="share-container">
+            <div class="share-title">Share your cosmic profile:</div>
+            <div class="social-buttons">
+              <div class="social-btn twitter-btn" onclick="shareResult('twitter')">
+                <i class="fab fa-twitter"></i>
+              </div>
+              <div class="social-btn facebook-btn" onclick="shareResult('facebook')">
+                <i class="fab fa-facebook-f"></i>
+              </div>
+              <div class="social-btn whatsapp-btn" onclick="shareResult('whatsapp')">
+                <i class="fab fa-whatsapp"></i>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary restart-btn" id="restart-btn">Take the Journey Again</button>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      // Create stars for the background
+      function createStars() {
+        const body = document.body;
+        const starCount = window.innerWidth < 600 ? 50 : 200;
+        
+        for (let i = 0; i < starCount; i++) {
+          const star = document.createElement('div');
+          star.classList.add('star');
+          
+          const size = Math.random() * 3 + 1;
+          star.style.width = size + 'px';
+          star.style.height = size + 'px';
+          
+          star.style.left = Math.random() * 100 + 'vw';
+          star.style.top = Math.random() * 100 + 'vh';
+          
+          star.style.animation = `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite ${Math.random() * 5}s`;
+          
+          body.appendChild(star);
+        }
+      }
+      
+      // Create the moon orbiting a planet
+      function createMoon() {
+        const jupiter = document.getElementById('jupiter');
+        const moon = document.createElement('div');
+        moon.classList.add('moon');
+        jupiter.appendChild(moon);
+      }
+      
+      window.addEventListener('DOMContentLoaded', () => {
+        createStars();
+        createMoon();
+      });
+      
+      const questions = [
+        {
+          id: 1,
+          text: "How do you typically respond to new social situations?",
+          options: [
+            { text: "I dive right in and introduce myself to everyone", score: { extroversion: 5, openness: 3 } },
+            { text: "I find one or two people to talk to", score: { extroversion: 3, openness: 2 } },
+            { text: "I observe first and join conversations gradually", score: { introversion: 3, analytical: 2 } },
+            { text: "I prefer to avoid unfamiliar social gatherings", score: { introversion: 5, structured: 2 } }
+          ]
+        },
+        {
+          id: 2,
+          text: "When making important decisions, you tend to:",
+          options: [
+            { text: "Follow your heart and intuition", score: { creative: 4, spontaneous: 3 } },
+            { text: "Consider how it will affect people you care about", score: { empathetic: 4, collaborative: 3 } },
+            { text: "Make a detailed pro/con list", score: { analytical: 4, structured: 3 } },
+            { text: "Seek advice from others with experience", score: { collaborative: 4, practical: 2 } }
+          ]
+        },
+        {
+          id: 3,
+          text: "When working on a project, which approach do you prefer?",
+          options: [
+            { text: "Follow a clear plan with specific milestones", score: { structured: 5, practical: 2 } },
+            { text: "Adapt and modify as you go along", score: { adaptable: 4, creative: 3 } },
+            { text: "Collaborate and get input from others", score: { collaborative: 5, empathetic: 2 } },
+            { text: "Explore multiple approaches simultaneously", score: { creative: 4, openness: 3 } }
+          ]
+        },
+        {
+          id: 4,
+          text: "How do you react to unexpected changes to your plans?",
+          options: [
+            { text: "I get frustrated and try to stick to the original plan", score: { structured: 5, analytical: 2 } },
+            { text: "I adapt quickly and find new opportunities", score: { adaptable: 5, spontaneous: 3 } },
+            { text: "I assess the implications before deciding how to proceed", score: { analytical: 4, practical: 3 } },
+            { text: "I usually go with the flow", score: { adaptable: 4, spontaneous: 4 } }
+          ]
+        },
+        {
+          id: 5,
+          text: "In a group setting, you're most likely to:",
+          options: [
+            { text: "Take charge and organize everyone", score: { extroversion: 5, structured: 3 } },
+            { text: "Contribute ideas but not necessarily lead", score: { extroversion: 3, creative: 3 } },
+            { text: "Listen and support others' ideas", score: { empathetic: 4, introversion: 2 } },
+            { text: "Analyze what's being said and offer thoughtful feedback", score: { analytical: 5, introversion: 2 } }
+          ]
+        },
+        {
+          id: 6,
+          text: "When you have free time, you prefer to:",
+          options: [
+            { text: "Socialize with friends or family", score: { extroversion: 5, collaborative: 2 } },
+            { text: "Engage in a creative hobby or project", score: { creative: 5, openness: 3 } },
+            { text: "Learn something new or read", score: { analytical: 3, openness: 4 } },
+            { text: "Relax and recharge on your own", score: { introversion: 5, reflective: 3 } }
+          ]
+        },
+        {
+          id: 7,
+          text: "How important is maintaining a routine in your daily life?",
+          options: [
+            { text: "Very important - I thrive with structure", score: { structured: 5, practical: 3 } },
+            { text: "Somewhat important - but I need flexibility too", score: { structured: 3, adaptable: 3 } },
+            { text: "Not very important - I prefer variety", score: { spontaneous: 4, adaptable: 3 } },
+            { text: "Not at all - I actively avoid routines", score: { spontaneous: 5, creative: 2 } }
+          ]
+        },
+        {
+          id: 8,
+          text: "When solving a problem, you tend to:",
+          options: [
+            { text: "Rely on proven methods that have worked before", score: { practical: 5, structured: 3 } },
+            { text: "Look for innovative or unconventional solutions", score: { creative: 5, openness: 3 } },
+            { text: "Break it down into smaller, manageable parts", score: { analytical: 5, structured: 2 } },
+            { text: "Discuss it with others to get different perspectives", score: { collaborative: 5, empathetic: 2 } }
+          ]
+        },
+        {
+          id: 9,
+          text: "How do you typically handle criticism?",
+          options: [
+            { text: "I appreciate it as an opportunity to improve", score: { adaptable: 4, analytical: 3 } },
+            { text: "I consider it carefully but may feel hurt", score: { empathetic: 4, reflective: 3 } },
+            { text: "I defend my position and may argue back", score: { extroversion: 3, structured: 2 } },
+            { text: "I tend to take it personally", score: { introversion: 3, empathetic: 3 } }
+          ]
+        },
+        {
+          id: 10,
+          text: "When it comes to trying new experiences, you are:",
+          options: [
+            { text: "Always eager and enthusiastic", score: { openness: 5, spontaneous: 3 } },
+            { text: "Interested but cautious", score: { openness: 3, analytical: 2 } },
+            { text: "Selective about what new things you try", score: { practical: 4, structured: 2 } },
+            { text: "Prefer to stick with what you know and enjoy", score: { introversion: 3, structured: 3 } }
+          ]
+        }
+      ];
+      
+      const personalityProfiles = [
+        {
+          title: "The Cosmic Visionary",
+          icon: "fas fa-lightbulb",
+          description: "Like a bright supernova illuminating the cosmos, you're an innovative thinker who sees possibilities where others see darkness. Your creativity shines across the universe, inspiring others with your brilliant ideas and enthusiasm for the unexplored.",
+          traits: ["Innovative", "Forward-thinking", "Inspirational", "Optimistic"],
+          dominantTraits: ["creative", "openness", "extroversion"]
+        },
+        {
+          title: "The Celestial Analyst",
+          icon: "fas fa-brain",
+          description: "You possess the precision of a perfectly aligned telescope, methodically analyzing the universe around you. Your ability to detect patterns in the cosmic noise enables you to discover solutions that remain hidden to others, making you an invaluable navigator through complex problems.",
+          traits: ["Logical", "Detail-oriented", "Objective", "Perceptive"],
+          dominantTraits: ["analytical", "structured", "practical"]
+        },
+        {
+          title: "The Galactic Diplomat",
+          icon: "fas fa-handshake",
+          description: "Like the gravitational force that binds galaxies together, you excel at understanding people and building consensus. Your empathy forms bridges across vast differences, helping you navigate complex social nebulae and unite diverse cosmic bodies around shared missions.",
+          traits: ["Empathetic", "Unifying", "Tactful", "Supportive"],
+          dominantTraits: ["empathetic", "collaborative", "adaptable"]
+        },
+        {
+          title: "The Stellar Guardian",
+          icon: "fas fa-shield-alt",
+          description: "Steady as the ancient stars, you're the dependable force that maintains cosmic order. Your attention to detail and practical approach ensures that orbital plans are executed flawlessly and celestial commitments are honored across the universe.",
+          traits: ["Reliable", "Organized", "Consistent", "Practical"],
+          dominantTraits: ["structured", "practical", "analytical"]
+        },
+        {
+          title: "The Cosmic Explorer",
+          icon: "fas fa-compass",
+          description: "Like a comet blazing across uncharted space, you thrive on new frontiers and discoveries. Your adaptability and boundless curiosity propel you toward cosmic adventures and growth opportunities that others might avoid, making you a true pioneer of unexplored realms.",
+          traits: ["Adventurous", "Adaptable", "Independent", "Dynamic"],
+          dominantTraits: ["openness", "spontaneous", "adaptable"]
+        },
+        {
+          title: "The Nebula Commander",
+          icon: "fas fa-chess-queen",
+          description: "With the commanding presence of a galactic core, you naturally coordinate complex cosmic operations. Your strategic brilliance and organizational powers help you lead others effectively through interstellar challenges toward shared universal goals.",
+          traits: ["Strategic", "Authoritative", "Goal-oriented", "Influential"],
+          dominantTraits: ["structured", "extroversion", "analytical"]
+        },
+        {
+          title: "The Stellar Innovator",
+          icon: "fas fa-rocket",
+          description: "Like a star forge creating new elements, you're driven by a desire to improve and reinvent. Your unique blend of creativity and analytical insight allows you to engineer novel solutions to challenging cosmic problems that would confound conventional thinkers.",
+          traits: ["Inventive", "Curious", "Resourceful", "Visionary"],
+          dominantTraits: ["creative", "analytical", "openness"]
+        },
+        {
+          title: "The Cosmic Sage",
+          icon: "fas fa-book-open",
+          description: "With the wisdom of ancient starlight, you observe and contemplate the deeper patterns of existence. Your thoughtful nature and ability to see beyond the immediate cosmic panorama enable you to provide invaluable insights that illuminate the path for others.",
+          traits: ["Wise", "Contemplative", "Perceptive", "Profound"],
+          dominantTraits: ["analytical", "reflective", "introversion"]
+        }
+      ];
+      
+      let currentQuestionIndex = 0;
+      let userResponses = [];
+      let personalityScores = {
+        extroversion: 0, introversion: 0, creative: 0, analytical: 0,
+        structured: 0, adaptable: 0, empathetic: 0, practical: 0,
+        spontaneous: 0, collaborative: 0, openness: 0, reflective: 0
+      };
+      
+      const introContainer = document.getElementById('intro-container');
+      const questionContainer = document.getElementById('question-container');
+      const resultsContainer = document.getElementById('results-container');
+      const questionText = document.getElementById('question-text');
+      const optionsContainer = document.getElementById('options-container');
+      const prevButton = document.getElementById('prev-btn');
+      const nextButton = document.getElementById('next-btn');
+      const progressBar = document.getElementById('progress-bar');
+      const startButton = document.getElementById('start-btn');
+      const restartButton = document.getElementById('restart-btn');
+      const profileIcon = document.getElementById('profile-icon');
+      const profileTitle = document.getElementById('profile-title');
+      const profileDescription = document.getElementById('profile-description');
+      const profileTraits = document.getElementById('profile-traits');
+      
+      startButton.addEventListener('click', startQuiz);
+      nextButton.addEventListener('click', goToNextQuestion);
+      prevButton.addEventListener('click', goToPrevQuestion);
+      restartButton.addEventListener('click', restartQuiz);
+      
+      function startQuiz() {
+        introContainer.style.display = 'none';
+        questionContainer.style.display = 'block';
+        loadQuestion(0);
+      }
+      
+      function loadQuestion(index) {
+        currentQuestionIndex = index;
+        const progress = ((index + 1) / questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        const question = questions[index];
+        questionText.textContent = question.text;
+        optionsContainer.innerHTML = '';
+        
+        question.options.forEach((option, optionIndex) => {
+          const optionElement = document.createElement('div');
+          optionElement.className = 'option';
+          if (userResponses[index] === optionIndex) {
+            optionElement.classList.add('selected');
+          }
+          
+          optionElement.innerHTML = `
+            <div class="option-radio"></div>
+            <div class="option-text">${option.text}</div>
+          `;
+          
+          optionElement.addEventListener('click', () => selectOption(optionIndex));
+          optionsContainer.appendChild(optionElement);
+        });
+        
+        prevButton.disabled = index === 0;
+        prevButton.classList.toggle('btn-disabled', index === 0);
+        
+        const isOptionSelected = userResponses[index] !== undefined;
+        nextButton.disabled = !isOptionSelected;
+        nextButton.classList.toggle('btn-disabled', !isOptionSelected);
+        
+        nextButton.textContent = (index === questions.length - 1) ? 'Reveal Cosmic Profile' : 'Next';
+      }
+      
+      function selectOption(optionIndex) {
+        userResponses[currentQuestionIndex] = optionIndex;
+        const options = optionsContainer.querySelectorAll('.option');
+        options.forEach((option, index) => {
+          option.classList.toggle('selected', index === optionIndex);
+        });
+        nextButton.disabled = false;
+        nextButton.classList.remove('btn-disabled');
+      }
+      
+      function goToNextQuestion() {
+        if (currentQuestionIndex < questions.length - 1) {
+          loadQuestion(currentQuestionIndex + 1);
+        } else {
+          calculateResults();
+        }
+      }
+      
+      function goToPrevQuestion() {
+        if (currentQuestionIndex > 0) {
+          loadQuestion(currentQuestionIndex - 1);
+        }
+      }
+      
+      function calculateResults() {
+        for (const trait in personalityScores) {
+          personalityScores[trait] = 0;
+        }
+        
+        userResponses.forEach((response, index) => {
+          const score = questions[index].options[response].score;
+          for (const trait in score) {
+            personalityScores[trait] += score[trait];
+          }
+        });
+        
+        const traitEntries = Object.entries(personalityScores);
+        traitEntries.sort((a, b) => b[1] - a[1]);
+        const topTraits = traitEntries.slice(0, 3).map(entry => entry[0]);
+        
+        const matchingProfiles = personalityProfiles.filter(profile => 
+          profile.dominantTraits.some(trait => topTraits.includes(trait))
+        );
+        
+        const weightedProfiles = matchingProfiles.map(profile => {
+          const matchCount = profile.dominantTraits.filter(trait => topTraits.includes(trait)).length;
+          return { profile, weight: matchCount * matchCount };
+        });
+        
+        let totalWeight = weightedProfiles.reduce((sum, item) => sum + item.weight, 0);
+        let random = Math.random() * totalWeight;
+        let selectedProfile;
+        
+        for (const item of weightedProfiles) {
+          random -= item.weight;
+          if (random <= 0) {
+            selectedProfile = item.profile;
+            break;
+          }
+        }
+        
+        if (!selectedProfile) {
+          selectedProfile = matchingProfiles.length > 0 ? matchingProfiles[0].profile : personalityProfiles[0];
+        }
+        
+        displayResults(selectedProfile);
+      }
+      
+      function displayResults(profile) {
+        questionContainer.style.display = 'none';
+        resultsContainer.style.display = 'block';
+        
+        profileIcon.innerHTML = `<i class="${profile.icon}"></i>`;
+        profileTitle.textContent = profile.title;
+        profileDescription.textContent = profile.description;
+        
+        profileTraits.innerHTML = '';
+        profile.traits.forEach(trait => {
+          const traitElement = document.createElement('div');
+          traitElement.className = 'trait';
+          traitElement.textContent = trait;
+          profileTraits.appendChild(traitElement);
+        });
+      }
+      
+      function restartQuiz() {
+        userResponses = [];
+        currentQuestionIndex = 0;
+        progressBar.style.width = '0%';
+        resultsContainer.style.display = 'none';
+        introContainer.style.display = 'block';
+      }
+      
+      function shareResult(platform) {
+        const profileTitleText = document.getElementById('profile-title').textContent;
+        const message = `The stars have revealed I'm "${profileTitleText}" on the Cosmic Personality Predictor! Discover your cosmic identity!`;
+        const url = window.location.href;
+        let shareUrl;
+        
+        switch (platform) {
+          case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`;
+            break;
+          case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}"e=${encodeURIComponent(message)}`;
+            break;
+          case 'whatsapp':
+            shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message + " " + url)}`;
+            break;
+          default:
+            return;
+        }
+        
+        window.open(shareUrl, '_blank');
+      }
+    </script>
+  </body>
+</html>
