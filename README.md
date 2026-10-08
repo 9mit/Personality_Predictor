@@ -113,7 +113,7 @@ personality-predictor/
 │   ├── audio.js          # Procedural Web Audio API sound synthesizer
 │   ├── particles.js      # Interactive HTML5 canvas starfield & constellation filaments
 │   └── app.js            # Main application controller & state transitions
-└── assets/               # Visual media assets
+└── .gitignore            # Standard repository ignore configuration
 ```
 
 ---
